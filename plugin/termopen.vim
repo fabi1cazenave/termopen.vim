@@ -111,7 +111,7 @@ function! TermOpenRanger(...)
   let type = a:0 >= 2 ? a:2 : 'm'         " default mode: [m]aximized
   let path = a:0 >= 3 ? a:3 : expand("%") " default file path
 
-  if path =~ "^term" " in case TermOpenRanger is called from a term...
+  if path =~ "^term://" " in case TermOpenRanger is called from a term...
     let path = getcwd()
   endif
   if cmd == 'lf'
@@ -130,15 +130,15 @@ endfunction
 " Keyboard Mappings
 "==============================================================================
 
-let termopen_mappings = exists('g:termopen_mappings') && g:termopen_mappings
+let s:termopen_mappings = exists('g:termopen_mappings') && g:termopen_mappings
 
 " true if suckless.vim Alt+* shortcuts are in use
-let suckless_mappings = exists('g:suckless_mappings')
+let s:suckless_mappings = exists('g:suckless_mappings')
       \ && has_key(g:suckless_mappings, 'windows')
       \ && get(g:suckless_mappings.windows, 'meta', 0)
 
 " window management
-if has('nvim') && suckless_mappings " {{{
+if has('nvim') && s:suckless_mappings " {{{
 
   " enter the terminal in insert mode
   autocmd BufEnter term://* startinsert
@@ -171,7 +171,7 @@ if has('nvim') && suckless_mappings " {{{
   tmap <M-c> <C-\><C-n><M-c>
 
   " }}}
-elseif !termopen_mappings " make <C-w> shortcuts work in terminal mode {{{
+elseif !s:termopen_mappings " make <C-w> shortcuts work in terminal mode {{{
 
   " Ctrl+w [hjkl]: select window
   tnoremap <C-w>h <C-\><C-n><C-w>h
@@ -194,7 +194,7 @@ elseif !termopen_mappings " make <C-w> shortcuts work in terminal mode {{{
 endif " }}}
 
 " open a new terminal
-if suckless_mappings
+if s:suckless_mappings
   " Alt+Return to start a new term (and to exit the term mode in neovim) {{{
   if g:MetaSendsEscape
     nnoremap <silent> <Esc><Return> :call TermOpen()<CR>
@@ -205,7 +205,7 @@ if suckless_mappings
     tnoremap <M-Return> <C-\><C-n>
   endif
   " }}}
-elseif !termopen_mappings
+elseif !s:termopen_mappings
   nnoremap <silent> <Leader>t :call TermOpen()<CR>
 endif
 

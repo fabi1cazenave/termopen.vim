@@ -36,6 +36,9 @@ nmap <Leader>p :call TermOpen('python')<CR>
 
 " open Tig in a new tab
 nmap <Leader>g :call TermOpen('tig', 't')<CR>
+
+" my favorite: https://github.com/samtay/tetris
+nmap <Leader>T :call TermOpen('tetris', 'm')<CR>
 ```
 
 File Managers

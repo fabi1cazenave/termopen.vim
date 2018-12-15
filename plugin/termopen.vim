@@ -6,7 +6,7 @@
 "| Licence : MIT
 "|
 
-autocmd! bufwritepost terminal.vim source %
+" autocmd! bufwritepost termopen.vim source %
 
 "==============================================================================
 " Exported Functions
@@ -130,83 +130,46 @@ endfunction
 " Keyboard Mappings
 "==============================================================================
 
-let s:termopen_mappings = exists('g:termopen_mappings') && g:termopen_mappings
-
-" true if suckless.vim Alt+* shortcuts are in use
-let s:suckless_mappings = exists('g:suckless_mappings')
-      \ && has_key(g:suckless_mappings, 'windows')
-      \ && get(g:suckless_mappings.windows, 'meta', 0)
-
-" window management
-if has('nvim') && s:suckless_mappings " {{{
-
-  " enter the terminal in insert mode
-  autocmd BufEnter term://* startinsert
-
-  " Alt+[sdf]: select tiling mode
-  tmap <M-s> <C-\><C-n><M-s>
-  tmap <M-d> <C-\><C-n><M-d>
-  tmap <M-f> <C-\><C-n><M-f>
-
-  " Alt+[hjkl]: select window
-  tmap <M-h> <C-\><C-n><M-h>
-  tmap <M-j> <C-\><C-n><M-j>
-  tmap <M-k> <C-\><C-n><M-k>
-  tmap <M-l> <C-\><C-n><M-l>
-
-  " Shift+Alt+[hjkl]: move current window
-  tmap <M-H> <C-\><C-n><M-H>
-  tmap <M-J> <C-\><C-n><M-J>
-  tmap <M-K> <C-\><C-n><M-K>
-  tmap <M-L> <C-\><C-n><M-L>
-
-  " Ctrl+Alt+[hjkl]: resize current window
-  tmap <C-M-h> <C-\><C-n><C-M-h>i
-  tmap <C-M-j> <C-\><C-n><C-M-j>i
-  tmap <C-M-k> <C-\><C-n><C-M-k>i
-  tmap <C-M-l> <C-\><C-n><C-M-l>i
-
-  " Alt+[wc]: close/collapse current window
-  tmap <M-w> <C-\><C-n><M-w>
-  tmap <M-c> <C-\><C-n><M-c>
-
-  " }}}
-elseif !s:termopen_mappings " make <C-w> shortcuts work in terminal mode {{{
-
-  " Ctrl+w [hjkl]: select window
-  tnoremap <C-w>h <C-\><C-n><C-w>h
-  tnoremap <C-w>j <C-\><C-n><C-w>j
-  tnoremap <C-w>k <C-\><C-n><C-w>k
-  tnoremap <C-w>l <C-\><C-n><C-w>l
-
-  " Ctrl+w Ctrl+w: select previous window
-  tnoremap <C-w>w <C-\><C-n><C-w>w
-  tnoremap <C-w><C-w> <C-\><C-n><C-w>w
-
-  " Ctrl+w [HJKL]: move current window
-  tnoremap <C-w>H <C-\><C-n><C-w>H
-  tnoremap <C-w>J <C-\><C-n><C-w>J
-  tnoremap <C-w>K <C-\><C-n><C-w>K
-  tnoremap <C-w>L <C-\><C-n><C-w>L
-
-  " Ctrl+w c: close window
-  tnoremap <C-w>c <C-\><C-n><C-w>c
-endif " }}}
-
-" open a new terminal
-if s:suckless_mappings
-  " Alt+Return to start a new term (and to exit the term mode in neovim) {{{
-  if g:MetaSendsEscape
-    nnoremap <silent> <Esc><Return> :call TermOpen()<CR>
-  else
-    nnoremap <silent> <M-Return> :call TermOpen()<CR>
+if !exists('g:termopen_autoinsert') || g:termopen_autoinsert
+  if has('nvim')
+    autocmd BufEnter term://* startinsert
+  elseif has('terminal') " startinsert doesn't work on Vim8 terminal windows
+    autocmd BufWinEnter,WinEnter *
+          \ if &buftype == 'terminal' | silent! normal i | endif
   endif
-  if has('nvim') " exit terminal mode
-    tnoremap <M-Return> <C-\><C-n>
-  endif
-  " }}}
-elseif !s:termopen_mappings
-  nnoremap <silent> <Leader>t :call TermOpen()<CR>
+endif
+
+if !exists('g:termopen_mappings') || g:termopen_mappings
+
+  " Ctrl-Return to open a new term and to switch to normal mode
+  nmap <silent> <C-Return> :call TermOpen()<CR>
+  tnoremap      <C-Return> <C-\><C-n>
+
+  " Ctrl-W mappings in terminal / insert mode
+  " (unless suckless.vim handles terminal windows) {{{
+  if !exists('g:suckless_tmap') || !g:suckless_tmap
+
+    " Ctrl+w [hjkl]: select window
+    tnoremap <C-w>h <C-\><C-n><C-w>h
+    tnoremap <C-w>j <C-\><C-n><C-w>j
+    tnoremap <C-w>k <C-\><C-n><C-w>k
+    tnoremap <C-w>l <C-\><C-n><C-w>l
+
+    " Ctrl+w Ctrl+w: select previous window
+    tnoremap <C-w>w <C-\><C-n><C-w>w
+    tnoremap <C-w><C-w> <C-\><C-n><C-w>w
+
+    " Ctrl+w [HJKL]: move current window
+    tnoremap <C-w>H <C-\><C-n><C-w>H
+    tnoremap <C-w>J <C-\><C-n><C-w>J
+    tnoremap <C-w>K <C-\><C-n><C-w>K
+    tnoremap <C-w>L <C-\><C-n><C-w>L
+
+    " Ctrl+w c: close window
+    tnoremap <C-w>c <C-\><C-n><C-w>c
+
+  endif "}}}
+
 endif
 
 " vim: set ft=vim fdm=marker fmr={{{,}}} fdl=0:

@@ -1,5 +1,5 @@
 TermOpen.vim
-============
+================================================================================
 
 Easy integration of TUI apps in Neovim: [Ranger][1], [LF][2], [Tig][3]…
 
@@ -8,7 +8,7 @@ Easy integration of TUI apps in Neovim: [Ranger][1], [LF][2], [Tig][3]…
   [3]: https://github.com/jonas/tig
 
 Basic Usage
------------
+--------------------------------------------------------------------------------
 
 Neovim natively comes with a neat `:term` command to open a terminal.
 *termopen.vim* enhances such terminal windows with a few details:
@@ -29,7 +29,7 @@ The `TermOpen` function makes it easy to run a TUI application in such a termina
 "   callback : function to call when done (default = close window)
 
 " open a shell in a new split (= default behavior)
-nmap <Leader>t :call TermOpen()<CR>
+nmap <C-Return> :call TermOpen()<CR>
 
 " open a python shell in a new split
 nmap <Leader>p :call TermOpen('python')<CR>
@@ -42,7 +42,7 @@ nmap <Leader>T :call TermOpen('tetris', 'm')<CR>
 ```
 
 File Managers
--------------
+--------------------------------------------------------------------------------
 
 `TermOpen`’s optional `callback` argument makes it easy to use a terminal file manager such as [Ranger][1] or [LF][2] as a file selector. That’s what the `TermOpenRanger` function does (26 SLOC only).
 
@@ -61,28 +61,39 @@ nmap <Leader>r :call TermOpenRanger()<CR>
 nmap <Leader>f :call TermOpenRanger('lf')<CR>
 ```
 
-Keyboard Mappings
------------------
+Settings
+--------------------------------------------------------------------------------
 
-By default, `<Leader>t` opens a new terminal window (unless `g:termopen_mappings` is set to 0).
+### Auto-Insert
 
-If [suckless.vim][4] is installed with its <kbd>Alt</kbd> shortcuts enabled:
+By default, this plugin switches to insert / terminal mode when a terminal window is focused. This can be disabled with the following:
 
-* <kbd>Alt</kbd>+<kbd>Return</kbd> is used instead;
-* all terminals are open in insert mode, and <kbd>Alt</kbd>+<kbd>Return</kbd> exits the terminal mode;
-* all other window management shortcuts (<kbd>Alt</kbd>+<kbd>h</kbd><kbd>j</kbd><kbd>k</kbd><kbd>l</kbd>, etc.) shortcuts work in terminal windows.
+```vim
+let g:termopen_autoinsert = 0
+```
+
+### Keyboard Mappings
+
+By default, <kbd>Ctrl</kbd>-<kbd>Return</kbd> opens a new terminal window and all <kbd>Ctrl</kbd>-<kbd>w</kbd> shortcuts work in terminal mode.
+
+If [suckless.vim][4] is installed and `g:suckless_tmap` is set to 1, all *suckless.vim* <kbd>Alt</kbd>-* shortcuts are used in terminal mode instead of the default <kbd>Ctrl</kbd>-<kbd>w</kbd> shortcuts.
 
   [4]: https://github.com/fabi1cazenave/suckless.vim
 
-Nothing else is pre-defined: if you want to use [Ranger][1], [LF][2], [Tig][3] or any other app, you’ll have to define your own mappings in your `~/.config/nvim/init.vim` file.
+All shortcuts can be disabled with the following:
 
-Experimental Vim 8 support
---------------------------
+```vim
+let g:termopen_mappings = 0
+```
+
+Nothing else is pre-defined: if you want to use [Ranger][1], [LF][2], [Tig][3] or any other app, you’ll have to define your own mappings in your `~/.vimrc` or `~/.config/nvim/init.vim` file.
+
+Partial Vim 8 support
+--------------------------------------------------------------------------------
 
 Vim 8 comes with a quite limited `:terminal` command. However it has a few caveats:
 
 * there’s no way to automatically close a terminal when it’s done: you’ll have to close the window manually;
-* it does not support [suckless.vim][4] window management shortcuts;
 * it does not support callbacks yet: if you pass a callback to `TermOpen`, it will run the command synchronously in fullscreen before starting the callback.
 
 A partial and hacky support has been implemented for Vim 8. Expect a few rough edges, but it should be usable for most cases.

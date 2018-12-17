@@ -21,13 +21,13 @@
 "             [v]ertical split
 "             [t]ab
 "   callback (default = close window)
-function! s:noop()
-endfunction
-
 function! TermOpen(...)
+  function! NoOp()
+  endfunction
+
   let cmd  = a:0 >= 1 ? a:1 : ''
   let type = a:0 >= 2 ? a:2 : 's'
-  let Func = a:0 >= 3 ? a:3 : function('s:noop')
+  let Func = a:0 >= 3 ? a:3 : function('NoOp')
 
   if has('nvim') "{{{
     if type == 's'      " open term in a new [s]plit (default)
@@ -58,15 +58,17 @@ function! TermOpen(...)
     startinsert
     "}}}
 
-  elseif has('terminal')  " Vim 8.0 or greater {{{
-    " Vim has no 'termopen' equivalent, sadly. No callbacks.
-    " And Vim cannot close the terminal buffer on its own.
-    " https://github.com/vim/vim/issues/1870
-    if a:0 >= 3
-      " callbacks are not supported: run a synchronous shell command instead
-      silent exec '!' . cmd
-      call Func()
-      redraw!
+  else " partial Vim support {{{
+    " Vim 7 has no 'terminal' at all: use a synchronous shell instead.
+    " Vim 8 has a 'terminal' but: <https://github.com/vim/vim/issues/1870>
+    "  - no callbacks: a synchronous shell command must be run instead;
+    "  - Vim has no way to close the terminal buffer on its own.
+    if a:0 >= 3 || !has('terminal') " synchronous shell command
+      if !has('gui_running') " this hack requires a real term
+        silent exec '!' . cmd
+        call Func()
+        redraw!
+      endif
     else
       if type == 's'      " open term in a new [s]plit (default)
         terminal
@@ -83,7 +85,7 @@ function! TermOpen(...)
       endif
       setlocal nonumber norelativenumber signcolumn=no listchars=
       if len(cmd)
-        call term_sendkeys(bufnr("%"), cmd . "\<CR>")
+        call term_sendkeys(bufnr("%"), cmd . "&& exit\<CR>\<C-l>")
       endif
     endif
   endif "}}}
@@ -143,32 +145,34 @@ if !exists('g:termopen_mappings') || g:termopen_mappings
 
   " Ctrl-Return to open a new term and to switch to normal mode
   nmap <silent> <C-Return> :call TermOpen()<CR>
-  tnoremap      <C-Return> <C-\><C-n>
+  if has('nvim') || has('terminal')
+    tnoremap <C-Return> <C-\><C-n>
 
-  " Ctrl-W mappings in terminal / insert mode
-  " (unless suckless.vim handles terminal windows) {{{
-  if !exists('g:suckless_tmap') || !g:suckless_tmap
+    " Ctrl-W mappings in terminal / insert mode
+    " (unless suckless.vim handles terminal windows) {{{
+    if !exists('g:suckless_tmap') || !g:suckless_tmap
 
-    " Ctrl+w [hjkl]: select window
-    tnoremap <C-w>h <C-\><C-n><C-w>h
-    tnoremap <C-w>j <C-\><C-n><C-w>j
-    tnoremap <C-w>k <C-\><C-n><C-w>k
-    tnoremap <C-w>l <C-\><C-n><C-w>l
+      " Ctrl+w [hjkl]: select window
+      tnoremap <C-w>h <C-\><C-n><C-w>h
+      tnoremap <C-w>j <C-\><C-n><C-w>j
+      tnoremap <C-w>k <C-\><C-n><C-w>k
+      tnoremap <C-w>l <C-\><C-n><C-w>l
 
-    " Ctrl+w Ctrl+w: select previous window
-    tnoremap <C-w>w <C-\><C-n><C-w>w
-    tnoremap <C-w><C-w> <C-\><C-n><C-w>w
+      " Ctrl+w Ctrl+w: select previous window
+      tnoremap <C-w>w <C-\><C-n><C-w>w
+      tnoremap <C-w><C-w> <C-\><C-n><C-w>w
 
-    " Ctrl+w [HJKL]: move current window
-    tnoremap <C-w>H <C-\><C-n><C-w>H
-    tnoremap <C-w>J <C-\><C-n><C-w>J
-    tnoremap <C-w>K <C-\><C-n><C-w>K
-    tnoremap <C-w>L <C-\><C-n><C-w>L
+      " Ctrl+w [HJKL]: move current window
+      tnoremap <C-w>H <C-\><C-n><C-w>H
+      tnoremap <C-w>J <C-\><C-n><C-w>J
+      tnoremap <C-w>K <C-\><C-n><C-w>K
+      tnoremap <C-w>L <C-\><C-n><C-w>L
 
-    " Ctrl+w c: close window
-    tnoremap <C-w>c <C-\><C-n><C-w>c
+      " Ctrl+w c: close window
+      tnoremap <C-w>c <C-\><C-n><C-w>c
 
-  endif "}}}
+    endif "}}}
+  endif
 
 endif
 

@@ -88,12 +88,12 @@ let g:termopen_mappings = 0
 
 Nothing else is pre-defined: if you want to use [Ranger][1], [LF][2], [Tig][3] or any other app, you’ll have to define your own mappings in your `~/.vimrc` or `~/.config/nvim/init.vim` file.
 
-Partial Vim 8 support
+Partial Vim Support
 --------------------------------------------------------------------------------
 
-Vim 8 comes with a quite limited `:terminal` command. However it has a few caveats:
+Vim 8 comes with a limited `:terminal` support:
 
 * there’s no way to automatically close a terminal when it’s done: you’ll have to close the window manually;
-* it does not support callbacks yet: if you pass a callback to `TermOpen`, it will run the command synchronously in fullscreen before starting the callback.
+* it does not support callbacks yet: if you pass a callback to `TermOpen`, it will run the command synchronously in fullscreen before starting the callback. This requires Vim to run in a terminal emulator: gVim is not supported.
 
-A partial and hacky support has been implemented for Vim 8. Expect a few rough edges, but it should be usable for most cases.
+Vim 7 has no `:terminal` support at all. All commands passed to `TermOpen` will run synchronously in fullscreen mode — again, this requires a terminal emulator.

@@ -85,7 +85,7 @@ function! TermOpen(...)
       endif
       setlocal nonumber norelativenumber signcolumn=no listchars=
       if len(cmd)
-        call term_sendkeys(bufnr("%"), cmd . "&& exit\<CR>\<C-l>")
+        call term_sendkeys(bufnr('%'), cmd . '&& exit\<CR>\<C-l>')
       endif
     endif
   endif "}}}
@@ -110,13 +110,13 @@ endfunction
 function! TermOpenRanger(...)
   let cmd  = a:0 >= 1 ? a:1 : 'ranger'    " default file browser
   let type = a:0 >= 2 ? a:2 : 'm'         " default mode: [m]aximized
-  let path = a:0 >= 3 ? a:3 : expand("%") " default file path
+  let path = a:0 >= 3 ? a:3 : expand('%') " default file path
 
-  if path =~ "^term://" " in case TermOpenRanger is called from a term...
+  if path =~ '^term://' " in case TermOpenRanger is called from a term...
     let path = getcwd()
   endif
-  if cmd == 'lf'
-    let browse_cmd = 'lf -selection-path ' . s:ranger_tmp .
+  if fnamemodify(cmd, ':t:r') == 'lf'
+    let browse_cmd = cmd . ' -selection-path ' . s:ranger_tmp .
         \ ' "' . fnamemodify(path, ':h') . '"'
   else
     let browse_cmd = cmd . ' --choosefiles=' . s:ranger_tmp .

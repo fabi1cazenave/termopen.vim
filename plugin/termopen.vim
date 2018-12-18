@@ -100,9 +100,8 @@ let s:ranger_tmp = '/tmp/selectedfiles'
 
 function! s:ranger_edit()
   if filereadable(s:ranger_tmp)
-    let cwd = getcwd()
-    for f in readfile(s:ranger_tmp)
-      exec 'split ' . (f[0:len(cwd)-1] ==# cwd ? f[len(cwd)+1:-1] : f)
+    for path in readfile(s:ranger_tmp)
+      exec 'split ' . fnamemodify(path, ':p:.')
     endfor
     call delete(s:ranger_tmp)
   endif

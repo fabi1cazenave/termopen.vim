@@ -20,14 +20,16 @@
 "             [m]aximized split
 "             [v]ertical split
 "             [t]ab
+"             [f]loating
 "   callback (default = close window)
 function! TermOpen(...)
   function! NoOp()
   endfunction
 
-  let cmd  = a:0 >= 1 ? a:1 : ''
-  let type = a:0 >= 2 ? a:2 : 's'
-  let Func = a:0 >= 3 ? a:3 : function('NoOp')
+  let cmd   = a:0 >= 1 ? a:1 : ''
+  let type  = a:0 >= 2 ? a:2 : 's'
+  let Func  = a:0 >= 3 ? a:3 : function('NoOp')
+  let title = a:0 >= 4 ? a:4 : ''
 
   if has('nvim') "{{{
     if type == 's'      " open term in a new [s]plit (default)
@@ -40,6 +42,16 @@ function! TermOpen(...)
       wincmd L
     elseif type == 't'  " open term in a new [t]ab
       tabnew
+    elseif type == 'f'  " open term in a new [f]loating window (Neovim 0.4+)
+      let width = float2nr(&columns * 0.8)
+      let height = &lines - 5
+      call nvim_open_win(nvim_create_buf(v:false, v:true), v:true, {
+            \ 'relative': 'editor',
+            \ 'width': width,
+            \ 'height': height,
+            \ 'col': float2nr((&columns - width) / 2),
+            \ 'row': float2nr((&lines - height) / 2)
+            \ })
     endif               " otherwise, open term in the current window
 
     " default callback = close the terminal window when done
@@ -52,17 +64,20 @@ function! TermOpen(...)
     endfunction
 
     " hide unnecessary UI info and open a :term in insert mode
-    setlocal nonumber norelativenumber signcolumn=no listchars=
+    setlocal nonumber norelativenumber signcolumn=no nolist
     setlocal nocursorcolumn nocursorline
     call termopen(len(cmd) ? cmd : &shell, callback)
+    if len(title)
+      exec "setlocal statusline=%{'term://" . title . "'}"
+    endif
     startinsert
     "}}}
 
-  else " partial Vim support {{{
+  else " partial and hacky Vim support {{{
     " Vim 7 has no 'terminal' at all: use a synchronous shell instead.
     " Vim 8 has a 'terminal' but: <https://github.com/vim/vim/issues/1870>
     "  - no callbacks: a synchronous shell command must be run instead;
-    "  - Vim has no way to close the terminal buffer on its own.
+    "  - no way to close the terminal buffer on its own.
     if a:0 >= 3 || !has('terminal') " synchronous shell command
       if !has('gui_running') " this hack requires a real term
         silent exec '!' . cmd
@@ -96,7 +111,7 @@ endfunction "}}}
 " {{{ supported file managers:
 "   https://github.com/ranger/ranger  -- Vim-inspired file manager (Python)
 "   https://github.com/gokcehan/lf    -- super-fast Ranger alternative (Go)
-let s:ranger_tmp = '/tmp/selectedfiles'
+let s:ranger_tmp = tempname()
 
 function! s:ranger_edit()
   if filereadable(s:ranger_tmp)
@@ -108,14 +123,21 @@ function! s:ranger_edit()
 endfunction
 
 function! TermOpenRanger(...)
-  let cmd  = a:0 >= 1 ? a:1 : 'ranger'    " default file browser
-  let type = a:0 >= 2 ? a:2 : 'm'         " default mode: [m]aximized
-  let path = a:0 >= 3 ? a:3 : expand('%') " default file path
+  " default window type: [f]loating if available, [m]aximized otherwise
+  " (only supported by Neovim -- Vim always runs Ranger in fullscreen mode)
+  let def_type = has('nvim-0.4.0') ? 'f' : 'm'
 
+  " default arguments
+  let cmd  = a:0 >= 1 ? a:1 : 'ranger'    " default file browser
+  let type = a:0 >= 2 ? a:2 : l:def_type  " default window type
+  let path = a:0 >= 3 ? a:3 : expand('%') " default file path
   if path =~ '^term://' " in case TermOpenRanger is called from a term...
     let path = getcwd()
   endif
-  if fnamemodify(cmd, ':t:r') == 'lf'
+
+  " command line
+  let cmd_name = fnamemodify(cmd, ':t:r')
+  if cmd_name == 'lf'
     let browse_cmd = cmd . ' -selection-path ' . s:ranger_tmp .
         \ ' "' . fnamemodify(path, ':h') . '"'
   else
@@ -123,7 +145,7 @@ function! TermOpenRanger(...)
         \ (isdirectory(path) ? ' "' : ' --selectfile="') . path . '"'
   endif
 
-  call TermOpen(browse_cmd, type, function('s:ranger_edit')) 
+  call TermOpen(browse_cmd, type, function('s:ranger_edit'), cmd_name)
 endfunction
 " }}}
 

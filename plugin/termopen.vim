@@ -140,6 +140,8 @@ function! TermOpenRanger(...)
   if cmd_name == 'lf'
     let browse_cmd = cmd . ' -selection-path ' . s:ranger_tmp .
         \ ' "' . fnamemodify(path, ':h') . '"'
+  elseif cmd_name == 'yazi'
+    let browse_cmd = cmd . ' --chooser-file="' . s:ranger_tmp . '" ' . path
   else
     let browse_cmd = cmd . ' --choosefiles=' . s:ranger_tmp .
         \ (isdirectory(path) ? ' "' : ' --selectfile="') . path . '"'
